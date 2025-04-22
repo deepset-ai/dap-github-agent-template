@@ -170,6 +170,9 @@ class GitHubPRCreator:
         # Ensure repo_to_use is a string (resolving the str | None mypy error)
         if repo_to_use is None:
             raise ValueError("You need to specify a repo to create the pull request. Pass `repo` either to the constructor or to the `run`-method.")
+            
+        # At this point, repo_to_use is guaranteed to be a string, not None
+        repo_to_use = str(repo_to_use)
 
         if repo_to_use is None:
             raise ValueError("You need to specify a repo to create the pull request. Pass `repo` either to the constructor or to the `run`-method.")
