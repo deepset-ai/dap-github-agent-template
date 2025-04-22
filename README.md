@@ -1,7 +1,22 @@
-# deepset AI platform GitOps template
+# deepset Github Agent
+_Template repository showcasing an Agent that can work with GitHub repositories and runs on the deepset AI platform_
 
-This is a template repository that enables a GitOps-style workflow to interact with pipelines and components on the
-[deepset AI platform](https://www.deepset.ai/products-and-services/deepset-ai-platform).
+## What can I use this for?
+
+The deepset GitHub Agent can independently write code to resolve GitHub issues and create a PR so that a human can
+review the changes before they are merged into the main branch.
+
+The Agent can perform the following actions:
+- it is triggered by a GitHub actions workflow and receives a GitHub issue as an input
+- it extracts the issue body and all issue comments from the issue that triggered it
+- it explores directories and files in the repository to build up relevant complex that is needed to resolve the issue
+- it creates a feature branch for the issue
+- it creates, updates or deletes files as needed to resolve the issue
+- it commits any changes to the feature branch that it created
+- it creates a PR upon completion that describes the changes made
+
+This repository also allows developers to manage custom components and pipelines for the [deepset AI platform](https://www.deepset.ai/products-and-services/deepset-ai-platform)
+directly from GitHub.
 
 Using this template, you can:
 - create custom components and push them to the deepset AI platform
@@ -163,7 +178,7 @@ Once all checks pass, merge your pull request.
 
 To sync your changes to the deepset AI platform:
 1. Go to the releases tab in GitHub and [create a new release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#creating-a-release).
-2. Create a new tag following this schema: `pipeline-*.*.*` (e.g. `pipeline-1.0.0` for version one).
+2. Create a new tag following this schema: `pipelines-*.*.*` (e.g. `pipelines-1.0.0` for version one).
 3. Name the release, then publish it.
 
 
