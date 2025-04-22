@@ -224,7 +224,7 @@ class GithubFileEditor:
             url = f"https://api.github.com/repos/{owner}/{repo}/contents/{payload['path']}"
             content = b64encode(payload["content"].encode("utf-8")).decode("utf-8")
 
-            data = {"message": payload["message"], "content": content, "branch": branch, "committer": True}
+            data = {"message": payload["message"], "content": content, "branch": branch}
 
             response = requests.put(url, headers=self.headers, json=data)
             response.raise_for_status()
