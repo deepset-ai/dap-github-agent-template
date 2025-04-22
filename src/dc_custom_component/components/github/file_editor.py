@@ -293,7 +293,8 @@ class GithubFileEditor:
 
         # Convert string command to Command enum if needed
         cmd = Command(command) if isinstance(command, str) else command
-        result = command_handlers[cmd](owner, repo_name, payload, working_branch)
+        handler = command_handlers[cmd]
+        result = handler(owner, repo_name, payload, working_branch)
         return {"result": result}
 
     def to_dict(self) -> Dict[str, Any]:
