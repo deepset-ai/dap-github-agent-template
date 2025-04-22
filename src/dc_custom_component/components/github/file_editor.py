@@ -276,7 +276,7 @@ class GithubFileEditor:
                 return {
                     "result": "Error: No repository specified. Either provide it in initialization or in run() method"
                 }
-            repo = self.default_repo
+            repo = self.default_repo  # At this point repo is guaranteed to be a string
 
         working_branch = branch if branch is not None else self.default_branch
         owner, repo_name = repo.split("/")
