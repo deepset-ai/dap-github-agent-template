@@ -286,7 +286,7 @@ class GithubFileEditor:
             Command.UNDO: self._undo_changes,
             Command.CREATE: self._create_file,
             Command.DELETE: self._delete_file,
-        }
+        } # type: dict[Command, Any]
 
         if command not in command_handlers:
             return {"result": f"Error: Unknown command '{command}'"}
