@@ -281,12 +281,12 @@ class GithubFileEditor:
         working_branch = branch if branch is not None else self.default_branch
         owner, repo_name = repo.split("/")
 
-        command_handlers = {
+        command_handlers: Dict[Command, Any] = {
             Command.EDIT: self._edit_file,
             Command.UNDO: self._undo_changes,
             Command.CREATE: self._create_file,
             Command.DELETE: self._delete_file,
-        } # type: dict[Command, Any]
+        }
 
         if command not in command_handlers:
             return {"result": f"Error: Unknown command '{command}'"}
