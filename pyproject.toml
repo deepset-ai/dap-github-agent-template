@@ -1,0 +1,118 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dc-custom-component"
+description = 'Custom Haystack component to be used with deepset Cloud'
+readme = "README.md"
+requires-python = ">=3.12,<3.13" # deepset cloud at the moment uses 3.10
+license = "MIT"
+keywords = []
+authors = [{ name = "deepset", email = "platform-engineering-exploration@deepset.de" }]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "haystack-ai>=2.12.0",
+  "haystack-experimental==0.8.0",
+  "opensearch-haystack",
+  "requests",
+  "openapi-llm",
+  "trafilatura",
+  "docstring-parser",
+  "anthropic-haystack>=2.4.0",
+  "weights-bias-haystack>=0.0.2"
+]
+dynamic = ["version"]
+
+[tool.hatch.version]
+path = "src/dc_custom_component/__about__.py"
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.12"]
+
+[tool.hatch.envs.default]
+dependencies = [
+  "pytest==7.4.2",
+]
+
+[tool.hatch.envs.default.scripts]
+tests = "pytest -vv tests"
+
+[tool.hatch.envs.dc]
+detached = true
+
+[tool.hatch.envs.dc.scripts]
+list = "curl --request GET --url ${{API_URL:-https://api.cloud.deepset.ai}}/api/v2/custom_components --header 'accept: application/json' --header \"Authorization: Bearer ${{API_KEY}}\""
+list-windows = [
+  'IF "%API_URL%"=="" (SET "_api_url=https://api.cloud.deepset.ai") ELSE (SET "_api_url=%API_URL%")',
+  "curl --request GET --url %_api_url%/api/v2/custom_components --header \"accept: application/json\" --header \"Authorization: Bearer %API_KEY%\""
+]
+logs = "curl --request GET --url ${{API_URL:-https://api.cloud.deepset.ai}}/api/v2/custom_components/logs --header 'accept: text/plain' --header \"Authorization: Bearer $API_KEY\""
+logs-windows = [
+  'IF "%API_URL%"=="" (SET "_api_url=https://api.cloud.deepset.ai") ELSE (SET "_api_url=%API_URL%")',
+  "curl --request GET --url %_api_url%/api/v2/custom_components/logs --header \"accept: text/plain\" --header \"Authorization: Bearer %API_KEY%\""
+]
+
+[tool.hatch.envs.dp]
+extra-dependencies = [
+  "requests",
+  "python-dotenv"
+]
+
+
+# Some pipelines might require secrets to be set when they are initialized
+# For now, we define fake env vars here
+# TODO: find a better approach
+[tool.hatch.envs.dp.env-vars]
+OPENAI_API_KEY = "fake key"
+
+[tool.hatch.envs.dp.scripts]
+build-cc = "python scripts/build_custom_components.py"
+push-cc = "python scripts/push_custom_components.py"
+build-and-push-cc = [
+  "build-cc",
+  "push-cc"
+]
+serialize-pipelines = "python scripts/serialize_pipelines.py"
+push-pipelines = "python scripts/push_pipelines.py"
+
+
+
+[tool.hatch.envs.code-quality]
+python = "3.12"
+detached = true
+dependencies = [
+  "black==23.9.1",
+  "mypy==1.9.0",
+  "ruff==0.3.2",
+  "types-requests"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dc_custom_component"]
+
+[tool.hatch.envs.code-quality.scripts]
+format = "black src tests --check"
+format-fix = "black src tests"
+lint = "ruff check . --output-format=github"
+lint-ci = "ruff check . --output-format=github"
+lint-fix = "ruff check .  --fix --output-format=github"
+hooks = "pre-commit install"
+docstrings = "pydocstyle src"
+all = "mypy src && black src tests && ruff check --fix ."
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true

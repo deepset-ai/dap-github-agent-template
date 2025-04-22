@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  serialize-pipelines:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install hatch
+
+      - name: Generate YAML files
+        id: generate
+        run: hatch run dp:serialize-pipelines
+
+      - name: Commit changes if any
+        run: |
+          if [ -n "$(git status --porcelain dist/pipelines/)" ]; then
+            git config --global user.name 'GitHub Action'
+            git config --global user.email 'action@github.com'
+            git add dist/pipelines/
+            git commit -m "Auto-serialize pipelines"
+            git push
+          else
+            echo "No changes detected in pipelines, skipping commit"
+          fi
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install Hatch
+      run: pip install hatch
+        
+    - name: Run tests
+      run: hatch run tests
+        
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        
+    - name: Install Hatch
+      run: pip install hatch
+        
+    - name: Run mypy
+      run: hatch run code-quality:mypy src tests
+        
+    - name: Run black
+      run: hatch run code-quality:format
+        
+    - name: Run ruff
+      run: hatch run code-quality:lint-ci

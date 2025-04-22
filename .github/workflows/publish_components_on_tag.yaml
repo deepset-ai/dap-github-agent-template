@@ -1,0 +1,37 @@
+name: Build and Push Custom Components
+
+on:
+  push:
+    tags:
+      - 'components-*.*.*'  # Only runs on tags matching this pattern
+
+env:
+  DP_API_URL: https://api.cloud.deepset.ai
+  # For the US tenant
+  # API_URL: https://api.us.deepset.ai
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install hatch
+
+    - name: Set version
+      run: |
+        # Extract version without the 'components-' prefix
+        VERSION=${GITHUB_REF#refs/tags/components-}
+        hatch version $VERSION
+
+    - name: Build and push
+      env:
+        DP_API_KEY: ${{ secrets.DP_API_KEY }}
+      run: hatch run dp:build-and-push-cc
