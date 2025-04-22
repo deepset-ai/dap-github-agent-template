@@ -311,4 +311,4 @@ class GithubFileEditor:
         """Deserialize the component from a dictionary."""
         init_params = data["init_parameters"]
         deserialize_secrets_inplace(init_params, keys=["github_token"])
-        return default_from_dict(cls, data)  # type: ignore
+        return default_from_dict(cls, data)
