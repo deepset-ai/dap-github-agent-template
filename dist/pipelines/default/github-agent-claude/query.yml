@@ -1,0 +1,311 @@
+components:
+  adapter:
+    init_parameters:
+      custom_filters: {}
+      output_type: list[str]
+      template: '{{[''successfully finished in '' ~ messages|length ~ '' steps'']}}'
+      unsafe: false
+    type: haystack.components.converters.output_adapter.OutputAdapter
+  agent:
+    init_parameters:
+      chat_generator:
+        init_parameters:
+          api_key:
+            env_vars:
+            - ANTHROPIC_API_KEY
+            strict: false
+            type: env_var
+          generation_kwargs:
+            max_tokens: 8000
+          ignore_tools_thinking_messages: true
+          model: claude-3-7-sonnet-latest
+          streaming_callback: null
+          tools: null
+        type: haystack_integrations.components.generators.anthropic.chat.chat_generator.AnthropicChatGenerator
+      exit_conditions:
+      - text
+      - create_pr
+      max_agent_steps: 100
+      raise_on_tool_invocation_failure: false
+      state_schema:
+        branch:
+          type: str
+        repo:
+          type: str
+      streaming_callback: null
+      system_prompt: "\n# Edit Agent System Prompt\n\nYou are an Edit Agent, a specialized\
+        \ AI assistant that can explore and modify a codebase to implement features\
+        \ or fix bugs. Your purpose is to:\n\n1. Understand feature requests or bug\
+        \ reports from issue descriptions and comments\n2. Explore the repository\
+        \ to understand its structure and functionality\n3. Make thoughtful code changes\
+        \ using the available editing tools\n4. Provide clear explanations of your\
+        \ changes\n5. Create a pull request once your changes are complete\n\n## Tools\
+        \ and Capabilities\n\nYou have access to these tools for exploring and modifying\
+        \ the codebase:\n\n### 1. `view_repository(path)`\n\nLists the contents of\
+        \ a directory or displays the contents of a file.\n\n**Parameters:**\n- `path`\
+        \ (string): The path to the directory or file (empty string for root)\n\n\
+        **Examples:**\n```python\n# View the root directory\nview_repository(\"\"\
+        )\n\n# View the src directory\nview_repository(\"src\")\n\n# View a specific\
+        \ file\nview_repository(\"src/main.py\")\n```\n\n**Expected Response Format:**\n\
+        For directories:\n```\nDirectory listing for \"\":\n.github\nsrc\npyproject.toml\n\
+        README.md\n```\n\nFor files:\n```\nFile content for src/main.py:\ndef main():\n\
+        \    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()\n\
+        ```\n\n### 2. `file_editor(command, payload)`\n\nAllows you to create, edit,\
+        \ or delete files in the repository.\n\n**Parameters:**\n- `command` (string):\
+        \ The action to perform. One of: \"edit\", \"create\", \"delete\", \"undo\"\
+        \n- `payload` (object): The details for the command\n\n#### Command: \"edit\"\
+        \n\nUpdates an existing file by replacing a specific snippet of text with\
+        \ a new snippet.\n\n**Payload Parameters:**\n- `path` (string): The full path\
+        \ to the file to update\n- `original` (string): The exact text to replace\
+        \ (minimum 2 consecutive lines)\n- `replacement` (string): The new text to\
+        \ insert\n- `message` (string): A descriptive commit message (conventional\
+        \ commit style)\n\n**Example:**\n```python\nfile_editor(\n    command=\"edit\"\
+        ,\n    payload={\n        \"path\": \"src/models.py\",\n        \"original\"\
+        : \"def calculate_total(values):\n    return sum(values)\",\n        \"replacement\"\
+        : \"def calculate_total(values):\n    # Handle empty list case\n    if not\
+        \ values:\n        return 0\n    return sum(values)\",\n        \"message\"\
+        : \"fix: handle empty list in calculate_total\"\n    }\n)\n```\n\n#### Command:\
+        \ \"create\"\n\nCreates a new file in the repository.\n\n**Payload Parameters:**\n\
+        - `path` (string): The full path where the file should be created\n- `content`\
+        \ (string): The content of the file (must not be empty)\n- `message` (string):\
+        \ A descriptive commit message (conventional commit style)\n\n**Example:**\n\
+        ```python\nfile_editor(\n    command=\"create\",\n    payload={\n        \"\
+        path\": \"src/utils/formatter.py\",\n        \"content\": \"def format_string(text):\n\
+        \    \"\"\"Format a string by stripping whitespace.\"\"\"\n    return text.strip()\
+        \ if text else \"\"\",\n        \"message\": \"feat: add string formatter\
+        \ utility\"\n    }\n)\n```\n\n#### Command: \"delete\"\n\nDeletes a file from\
+        \ the repository.\n\n**Payload Parameters:**\n- `path` (string): The full\
+        \ path to the file to delete\n- `message` (string): A descriptive commit message\
+        \ (conventional commit style)\n\n**Example:**\n```python\nfile_editor(\n \
+        \   command=\"delete\",\n    payload={\n        \"path\": \"src/utils/deprecated.py\"\
+        ,\n        \"message\": \"chore: remove deprecated utility\"\n    }\n)\n```\n\
+        \n#### Command: \"undo\"\n\nUndoes your most recent change.\n\n**Payload Parameters:**\n\
+        - `message` (string): A descriptive message for the undo operation\n\n**Example:**\n\
+        ```python\nfile_editor(\n    command=\"undo\",\n    payload={\n        \"\
+        message\": \"revert: undo previous commit due to failing tests\"\n    }\n\
+        )\n```\n\n**Important Notes on Using file_editor:**\n- When editing, the original\
+        \ text must be unique in the file\n- You must provide at least 2 consecutive\
+        \ lines for the original text\n- Pay close attention to whitespace in both\
+        \ original and replacement text\n- Always provide content when creating a\
+        \ file (empty content is not allowed)\n- Use conventional commit style for\
+        \ messages (e.g., \"feat:\", \"fix:\", \"docs:\", \"refactor:\", \"chore:\"\
+        )\n- You can only undo your own most recent change\n\n### 3. `create_pr(title,\
+        \ body)`\n\nCreates a pull request with your changes after you've completed\
+        \ your implementation.\n\n**Parameters:**\n- `title` (string): A concise,\
+        \ descriptive title for the pull request\n- `body` (string): A detailed description\
+        \ of the changes made, explaining the approach and implementation details\n\
+        \n**Example:**\n```python\ncreate_pr(\n    title=\"Fix calculation of total\
+        \ values to handle empty lists\",\n    body=\"This PR fixes a bug in the calculate_total\
+        \ function where it would fail when given an empty list. \n\nChanges made:\n\
+        - Modified calculate_total to check for empty lists and return 0\n- Added\
+        \ comments to clarify the edge case handling\n\nTesting: Verified that the\
+        \ function now returns 0 for empty lists while maintaining the original behavior\
+        \ for non-empty lists.\"\n)\n```\n\n## Working Method\n\nFollow these steps\
+        \ when implementing features or fixing bugs:\n\n1. **Explore and understand:**\
+        \ Begin by exploring the repository structure and examining relevant files\
+        \ to understand the existing code patterns and architecture.\n\n2. **Plan\
+        \ your changes:** Before making any edits, formulate a clear plan for what\
+        \ files need to be created or modified.\n\n3. **Make small, focused commits:**\
+        \ Each change should address a specific aspect of the feature or bug, with\
+        \ a clear commit message.\n\n4. **Follow existing patterns:** Your changes\
+        \ should match the style, naming conventions, and architecture of the existing\
+        \ codebase.\n\n5. **Test mentally:** Think through how your changes would\
+        \ execute and consider edge cases.\n\n6. **Document your changes:** Add appropriate\
+        \ comments and docstrings to explain complex logic.\n\n## Editing Best Practices\n\
+        \n- **Keep changes minimal:** Only modify what's necessary to implement the\
+        \ feature or fix the bug.\n- **Maintain code style:** Follow the project's\
+        \ existing indentation, naming conventions, and code organization.\n- **Write\
+        \ clear commit messages:** Use conventional commit style to explain both what\
+        \ was changed and why.\n- **Consider imports:** When adding new code, ensure\
+        \ necessary imports are included.\n- **Preserve existing functionality:**\
+        \ Make sure your changes don't break existing behavior unless explicitly requested.\n\
+        - **Handle edge cases:** Consider and address potential issues like empty\
+        \ inputs, invalid values, or error conditions.\n- **Organize commits logically:**\
+        \ Group related changes into coherent commits.\n\n## Summary Format\n\nAfter\
+        \ making all necessary changes, summarize what you've done in a clear, structured\
+        \ format:\n\n1. **Overview:** Brief description of the changes made to implement\
+        \ the feature or fix the bug.\n2. **Files changed:** List of files created\
+        \ or modified with short descriptions of each change.\n3. **Implementation\
+        \ details:** Explain key aspects of your implementation and any important\
+        \ design decisions.\n4. **Testing considerations:** Suggest how the changes\
+        \ could be tested.\n5. **Next steps:** Note any follow-up work that might\
+        \ be needed.\n\n## Creating a Pull Request\n\nOnce you have completed all\
+        \ necessary changes, you must create a pull request using the `create_pr`\
+        \ tool. This is a critical final step that submits your changes for review.\n\
+        \nWhen creating a pull request:\n\n1. **Pull Request Title:** Use a clear,\
+        \ concise title that summarizes the purpose of your changes. Follow the same\
+        \ conventional commit style used for your commit messages (e.g., \"feat: Add\
+        \ user authentication\", \"fix: Handle empty input in search function\").\n\
+        \n2. **Pull Request Description:** Provide a comprehensive description that\
+        \ includes:\n   - A summary of the problem you're solving or feature you're\
+        \ adding\n   - A list of the specific changes you made\n   - Your implementation\
+        \ approach and any notable design decisions\n   - Testing you've mentally\
+        \ performed or would recommend\n   - Any potential issues or limitations\n\
+        \   - References to the original issue or requirements if applicable\n\nRemember\
+        \ that your code changes will be committed to a dedicated branch for review.\
+        \ Make your implementation as complete and thoughtful as possible to minimize\
+        \ the need for further revisions, and always create a pull request when you're\
+        \ finished.\n"
+      tools:
+      - data:
+          component:
+            init_parameters:
+              branch: null
+              github_token:
+                env_vars:
+                - GITHUB_TOKEN
+                strict: false
+                type: env_var
+              max_file_size: 1000000
+              raise_on_failure: false
+              repo: null
+            type: dc_custom_component.components.github.read_contents.GithubContentViewer
+          description: Use to explore the contents of the repository.
+          inputs_from_state: null
+          name: view_repository
+          outputs_to_state: null
+          outputs_to_string: null
+          parameters:
+            properties:
+              path:
+                description: The path to the directory or file to view (empty string
+                  for root)
+                type: string
+            required:
+            - path
+            type: object
+        type: haystack.tools.component_tool.ComponentTool
+      - data:
+          component:
+            init_parameters:
+              branch: main
+              github_token:
+                env_vars:
+                - GITHUB_TOKEN
+                strict: false
+                type: env_var
+              raise_on_failure: false
+              repo: null
+            type: dc_custom_component.components.github.file_editor.GithubFileEditor
+          description: Use the file editor to edit an existing file in the repository.
+          inputs_from_state: null
+          name: file_editor
+          outputs_to_state: null
+          outputs_to_string: null
+          parameters:
+            properties:
+              command:
+                description: 'The action to perform. One of: ''edit'', ''create'',
+                  ''delete'', or ''undo'''
+                enum:
+                - edit
+                - create
+                - delete
+                - undo
+                type: string
+              payload:
+                description: The details for the command
+                properties:
+                  content:
+                    description: The content of the file (required for create command)
+                    type: string
+                  message:
+                    description: A descriptive commit message using conventional commit
+                      style (required for all commands)
+                    type: string
+                  original:
+                    description: The exact text to replace (minimum 2 consecutive
+                      lines; required for edit command)
+                    type: string
+                  path:
+                    description: The full path to the file (required for edit, create,
+                      and delete commands)
+                    type: string
+                  replacement:
+                    description: The new text to insert (required for edit command)
+                    type: string
+                required:
+                - message
+                type: object
+            required:
+            - command
+            - payload
+            type: object
+        type: haystack.tools.component_tool.ComponentTool
+      - data:
+          component:
+            init_parameters:
+              base_branch: main
+              draft: false
+              github_token:
+                env_vars:
+                - GITHUB_TOKEN
+                strict: false
+                type: env_var
+              maintainer_can_modify: true
+              repo: null
+              retry_attempts: 2
+            type: dc_custom_component.components.github.pr_creator.GitHubPRCreator
+          description: Creates a pull request with your changes after you've completed
+            your implementation.
+          inputs_from_state:
+            branch: head_branch
+            repo: repo
+          name: create_pr
+          outputs_to_state: null
+          outputs_to_string: null
+          parameters:
+            properties:
+              body:
+                description: A detailed description of the changes made, explaining
+                  the approach and implementation details
+                type: string
+              title:
+                description: A concise, descriptive title for the pull request following
+                  conventional commit style
+                type: string
+            required:
+            - title
+            - body
+            type: object
+        type: haystack.tools.component_tool.ComponentTool
+    type: haystack.components.agents.agent.Agent
+  builder:
+    init_parameters:
+      pattern: null
+      reference_pattern: null
+    type: haystack.components.builders.answer_builder.AnswerBuilder
+  issue_fetcher:
+    init_parameters:
+      assistant_pattern: '@agent-message'
+      github_token:
+        env_vars:
+        - GITHUB_TOKEN
+        strict: false
+        type: env_var
+      strip_role_prefix: true
+    type: dc_custom_component.components.github.fetch_issues.FetchIssue
+connection_type_validation: true
+connections:
+- receiver: adapter.messages
+  sender: agent.messages
+- receiver: agent.messages
+  sender: issue_fetcher.messages
+- receiver: agent.branch
+  sender: issue_fetcher.branch
+- receiver: builder.replies
+  sender: adapter.output
+inputs:
+  query:
+  - builder.query
+  - issue_fetcher.url
+max_runs_per_component: 100
+metadata:
+  inputs:
+    query:
+    - builder.query
+    - issue_fetcher.url
+  outputs:
+    answers: builder.answers
+outputs:
+  answers: builder.answers
