@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import requests
 from haystack import component, default_from_dict, default_to_dict, logging
@@ -42,7 +42,7 @@ class GitHubPRCreator:
 
     def __init__(
         self,
-        repo: str,
+        repo: Optional[str] = None,
         github_token: Secret = Secret.from_env_var("GITHUB_TOKEN", strict=False),
         base_branch: str = "main",
         draft: bool = False,
@@ -62,10 +62,8 @@ class GitHubPRCreator:
         if not github_token:
             raise ValueError("GitHub token is required for creating pull requests")
 
-        repo_owner, repo_name = repo.split("/")
         self.github_token = github_token
-        self.owner = repo_owner
-        self.repo = repo_name
+        self.repo = repo
         self.base_branch = base_branch
         self.draft = draft
         self.maintainer_can_modify = maintainer_can_modify
@@ -88,7 +86,7 @@ class GitHubPRCreator:
         return headers
 
     def _create_pull_request(
-        self, head_branch: str, base_branch: str, title: str, body: str
+        self, head_branch: str, base_branch: str, title: str, body: str, repo: str
     ) -> Dict[str, Any]:
         """
         Create a pull request via the GitHub API.
@@ -97,9 +95,12 @@ class GitHubPRCreator:
         :param base_branch: Branch to merge changes into
         :param title: Pull request title
         :param body: Pull request description
+        :param repo: owner/repo
         :return: API response data
         """
-        url = f"https://api.github.com/repos/{self.owner}/{self.repo}/pulls"
+        owner, repository = repo.split("/")
+
+        url = f"https://api.github.com/repos/{owner}/{repository}/pulls"
 
         data = {
             "head": head_branch,
@@ -123,7 +124,7 @@ class GitHubPRCreator:
         return default_to_dict(  # type: ignore
             self,
             github_token=self.github_token.to_dict(),
-            repo=f"{self.owner}/{self.repo}",
+            repo=self.repo,
             base_branch=self.base_branch,
             draft=self.draft,
             maintainer_can_modify=self.maintainer_can_modify,
@@ -148,6 +149,7 @@ class GitHubPRCreator:
         head_branch: str,
         title: str,
         body: str = "",
+        repo: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create a pull request on GitHub.
@@ -155,8 +157,22 @@ class GitHubPRCreator:
         :param head_branch: Branch containing the changes
         :param title: Pull request title
         :param body: Pull request description/body
+        :param repo: owner/repo for which to create the pull request
         :return: Dictionary containing PR URL, number, and full response data
         """
+
+
+        if repo is not None:
+            repo_to_use = repo
+        else:
+            repo_to_use = self.repo
+
+        if repo_to_use is None:
+            raise ValueError("You need to specify a repo to create the pull request. Pass `repo` either to the constructor or to the `run`-method.")
+
+        if len(repo_to_use.split("/")) != 2:
+            raise ValueError("Invalid format for `repo`. The format has to correspond to owner/repo.")
+
         attempts = 0
         last_error = None
 
@@ -169,6 +185,7 @@ class GitHubPRCreator:
                     base_branch=target_base,
                     title=title,
                     body=body,
+                    repo=repo_to_use,
                 )
 
                 return {

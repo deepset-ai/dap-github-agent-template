@@ -3,7 +3,7 @@ name: Build and Push Pipelines
 on:
   push:
     tags:
-      - 'pipeline-*.*.*'  # Only runs on tags matching this pattern
+      - 'pipelines-*.*.*'  # Only runs on tags matching this pattern
 
 env:
   DP_API_URL: https://api.cloud.deepset.ai
@@ -26,5 +26,5 @@ jobs:
 
     - name: Build and push
       env:
-        DP_API_KEY: ${{ secrets.DP_API_KEY }}
+        DP_API_KEY: ${{ secrets.DEEPSET_API_TOKEN }}
       run: hatch run dp:push-pipelines

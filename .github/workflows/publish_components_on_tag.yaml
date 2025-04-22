@@ -33,5 +33,5 @@ jobs:
 
     - name: Build and push
       env:
-        DP_API_KEY: ${{ secrets.DP_API_KEY }}
+        DP_API_KEY: ${{ secrets.DEEPSET_API_TOKEN }}
       run: hatch run dp:build-and-push-cc

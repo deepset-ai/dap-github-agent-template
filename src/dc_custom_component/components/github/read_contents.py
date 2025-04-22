@@ -49,7 +49,7 @@ class GithubContentViewer(SuperComponent):
 
     def __init__(
         self,
-        repo: str,
+        repo: Optional[str] = None,
         github_token: Secret = Secret.from_env_var("GITHUB_TOKEN", strict=False),
         raise_on_failure: bool = True,
         max_file_size: int = 1_000_000,  # 1MB default limit
@@ -123,6 +123,7 @@ File content for {{path}}:
             input_mapping={
                 "path": ["repo_viewer.path", "prompt_builder.path"],
                 "branch": ["repo_viewer.branch"],
+                "repo": ["repo_viewer.repo"],
             },
             output_mapping={
                 "prompt_builder.prompt": "result",

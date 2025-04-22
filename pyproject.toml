@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "dc-custom-component"
 description = 'Custom Haystack component to be used with deepset Cloud'
 readme = "README.md"
-requires-python = ">=3.12,<3.13" # deepset cloud at the moment uses 3.10
+requires-python = ">=3.12,<3.13"
 license = "MIT"
 keywords = []
 authors = [{ name = "deepset", email = "platform-engineering-exploration@deepset.de" }]
@@ -21,7 +21,6 @@ classifiers = [
 ]
 dependencies = [
   "haystack-ai>=2.12.0",
-  "haystack-experimental==0.8.0",
   "opensearch-haystack",
   "requests",
   "openapi-llm",
@@ -67,13 +66,6 @@ extra-dependencies = [
   "python-dotenv"
 ]
 
-
-# Some pipelines might require secrets to be set when they are initialized
-# For now, we define fake env vars here
-# TODO: find a better approach
-[tool.hatch.envs.dp.env-vars]
-OPENAI_API_KEY = "fake key"
-
 [tool.hatch.envs.dp.scripts]
 build-cc = "python scripts/build_custom_components.py"
 push-cc = "python scripts/push_custom_components.py"
@@ -90,9 +82,9 @@ push-pipelines = "python scripts/push_pipelines.py"
 python = "3.12"
 detached = true
 dependencies = [
-  "black==23.9.1",
-  "mypy==1.9.0",
-  "ruff==0.3.2",
+  "black",
+  "mypy",
+  "ruff",
   "types-requests"
 ]
 
