@@ -136,9 +136,9 @@ class GithubFileEditor:
     def _check_last_commit(self, owner: str, repo: str, branch: str) -> bool:
         """Check if last commit was made by the current token user."""
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
-        params = {"per_page": 1, "sha": branch}
+        params_dict = {"per_page": 1, "sha": branch}
         response = requests.get(
-            url, headers=self.headers, params=params
+            url, headers=self.headers, params=params_dict
         )
         response.raise_for_status()
         last_commit = response.json()[0]
