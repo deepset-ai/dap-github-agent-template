@@ -291,7 +291,9 @@ class GithubFileEditor:
         if command not in command_handlers:
             return {"result": f"Error: Unknown command '{command}'"}
 
-        result = command_handlers[command](owner, repo_name, payload, working_branch)
+        # Convert string command to Command enum if needed
+        cmd = Command(command) if isinstance(command, str) else command
+        result = command_handlers[cmd](owner, repo_name, payload, working_branch)
         return {"result": result}
 
     def to_dict(self) -> Dict[str, Any]:
