@@ -131,7 +131,7 @@ class GithubFileEditor:
         }
         response = requests.put(url, headers=self.headers, json=payload)
         response.raise_for_status()
-        return True
+        return True  # Explicit return value to satisfy mypy
 
     def _check_last_commit(self, owner: str, repo: str, branch: str) -> bool:
         """Check if last commit was made by the current token user."""
