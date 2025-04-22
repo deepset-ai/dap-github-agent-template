@@ -104,7 +104,8 @@ class GithubFileEditor:
     ) -> tuple[str, str]:
         """Get file content and SHA from GitHub."""
         url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        response = requests.get(url, headers=self.headers, params={"ref": branch})
+        params = {"ref": branch}
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
         data = response.json()
         content = b64decode(data["content"]).decode("utf-8")
