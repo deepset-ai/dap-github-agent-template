@@ -198,8 +198,9 @@ class GithubFileEditor:
             commits_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
 
             # Get the previous commit SHA
+            params = {"per_page": 2, "sha": branch}
             commits = requests.get(
-                commits_url, headers=self.headers, params={"per_page": 2, "sha": branch}
+                commits_url, headers=self.headers, params=params
             ).json()
             previous_sha = commits[1]["sha"]
 
