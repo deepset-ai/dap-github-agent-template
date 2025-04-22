@@ -298,13 +298,14 @@ class GithubFileEditor:
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the component to a dictionary."""
-        return default_to_dict(
+        result = default_to_dict(  # type: ignore
             self,
             github_token=self.github_token.to_dict() if self.github_token else None,
             repo=self.default_repo,
             branch=self.default_branch,
             raise_on_failure=self.raise_on_failure,
         )
+        return result
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "GithubFileEditor":
