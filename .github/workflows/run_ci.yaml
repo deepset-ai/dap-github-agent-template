@@ -6,7 +6,35 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
+  # First upload artifacts containing changes status
+  init-artifacts:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Create empty artifacts
+        run: |
+          echo "false" > code_quality_changes.txt
+          echo "false" > pipeline_changes.txt
+      
+      - name: Upload code quality changes flag
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-changes
+          path: code_quality_changes.txt
+          retention-days: 1
+          
+      - name: Upload pipeline changes flag
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-changes
+          path: pipeline_changes.txt
+          retention-days: 1
+          
   validate-pipelines:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -34,11 +62,13 @@ jobs:
   serialize-pipelines:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [init-artifacts]
+    outputs:
+      has_changes: ${{ steps.check_changes.outputs.has_changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -54,20 +84,28 @@ jobs:
       - name: Generate YAML files
         id: generate
         run: hatch run dp:serialize-pipelines
-
-      - name: Commit changes if any
+        
+      - name: Check for changes
+        id: check_changes
         run: |
           if [ -n "$(git status --porcelain dist/pipelines/)" ]; then
-            git config --global user.name 'GitHub Action'
-            git config --global user.email 'action@github.com'
-            git add dist/pipelines/
-            git commit -m "Auto-serialize pipelines"
-            git push
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "true" > pipeline_changes.txt
           else
-            echo "No changes detected in pipelines, skipping commit"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in pipelines, skipping"
+            echo "false" > pipeline_changes.txt
           fi
+          
+      - name: Upload pipeline changes flag
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-changes
+          path: pipeline_changes.txt
+          retention-days: 1
   test:
     runs-on: ubuntu-latest
+    needs: [code-quality]
     strategy:
       matrix:
         python-version: ["3.11"]
@@ -88,6 +126,8 @@ jobs:
         
   code-quality:
     runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check_formatting.outputs.has_changes }}
     
     steps:
     - uses: actions/checkout@v4
@@ -109,17 +149,23 @@ jobs:
     - name: Run ruff
       run: hatch run code-quality:lint-fix
         
-    - name: Commit code formatting changes
+    - name: Check for code formatting changes
       if: github.event_name != 'pull_request'
+      id: check_formatting
       run: |
         if [ -n "$(git status --porcelain)" ]; then
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          git add .
-          git commit -m "style: auto-format and lint code with black and ruff"
-          git push "https://${{ secrets.PAT_GITHUB }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${GITHUB_REF#refs/heads/}
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "true" > code_quality_changes.txt
         else
-          echo "No code formatting changes detected, skipping commit"
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+          echo "No code formatting changes detected, skipping"
+          echo "false" > code_quality_changes.txt
         fi
-      env:
-        PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
+
+    - name: Upload code quality changes flag
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-quality-changes
+        path: code_quality_changes.txt
+        retention-days: 1

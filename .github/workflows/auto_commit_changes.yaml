@@ -1,0 +1,9 @@
+# This workflow is deprecated in favor of process_auto_changes.yaml
+# It's kept for reference until the new workflow is confirmed working
+name: Auto Commit Changes (Deprecated)
+
+on:
+  workflow_dispatch:
+    
+permissions:
+  contents: write
