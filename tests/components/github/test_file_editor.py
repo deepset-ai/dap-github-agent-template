@@ -246,7 +246,7 @@ class TestGithubFileEditor:
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
     @patch("requests.put")
-    def test_edit_file_request_exception(self, mock_put, mock_get_content, editor):
+    def test_edit_file_request_exception(self, mock_put: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
         """Test file editing with request exception"""
         mock_get_content.return_value = ("def old_function():\n    return 'old'", "abc123")
         mock_put.side_effect = RequestException("API error")
