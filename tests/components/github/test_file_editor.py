@@ -91,7 +91,7 @@ class TestGithubFileEditor:
         assert editor.raise_on_failure is False
         assert editor.headers["Authorization"] == "Bearer custom_token"
 
-    def test_init_with_invalid_token_type(self):
+    def test_init_with_invalid_token_type(self) -> None:
         """Test initialization with invalid token type"""
         with pytest.raises(TypeError, match="github_token must be a Secret"):
             GithubFileEditor(github_token="not_a_secret")
