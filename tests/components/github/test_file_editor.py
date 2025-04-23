@@ -393,7 +393,7 @@ class TestGithubFileEditor:
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
     @patch("requests.delete")
-    def test_delete_file_request_exception(self, mock_delete, mock_get_content, editor):
+    def test_delete_file_request_exception(self, mock_delete: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
         """Test file deletion with request exception"""
         mock_get_content.return_value = ("file content", "abc123")
         mock_delete.side_effect = RequestException("API error")
