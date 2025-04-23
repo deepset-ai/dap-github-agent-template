@@ -481,7 +481,7 @@ class TestGithubFileEditor:
         result = editor.run(Command.EDIT, {})
         assert "Error: No repository specified" in result["result"]
 
-    def test_run_with_custom_repo_branch(self, editor):
+    def test_run_with_custom_repo_branch(self, editor: GithubFileEditor) -> None:
         """Test run method with custom repo and branch"""
         with patch.object(editor, "_edit_file", return_value="Edit successful") as mock_edit:
             payload = {
