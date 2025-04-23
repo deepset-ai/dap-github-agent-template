@@ -130,6 +130,7 @@ def get_agent_pipeline() -> Pipeline:
                 "query": [
                     "builder.query",
                     "issue_fetcher.url",
+                    "agent.issue_url"
                 ],
             },
             "outputs": {"answers": "builder.answers"},
