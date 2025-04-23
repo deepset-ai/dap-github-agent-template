@@ -62,7 +62,7 @@ class TestGithubFileEditor:
         }
 
     @pytest.fixture
-    def editor(self):
+    def editor(self) -> GithubFileEditor:
         """Create a GithubFileEditor instance for testing"""
         return GithubFileEditor(
             github_token=Secret.from_token("dummy_token"),
