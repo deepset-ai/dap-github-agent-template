@@ -29,22 +29,7 @@ jobs:
 
       - name: Test pipeline serialization
         id: test_serialization
-        run: |
-          # Import the pipeline module and test that dumps() works without errors
-          python -c "
-          from dc_custom_component.pipelines import dp_pipelines
-          for pipeline_config in dp_pipelines:
-              query_pipeline = pipeline_config['query']
-              if query_pipeline:
-                  print(f'Testing serialization of {pipeline_config[\"workspace\"]}/{pipeline_config[\"name\"]} query pipeline')
-                  yaml_str = query_pipeline.dumps()
-              
-              indexing_pipeline = pipeline_config.get('indexing')
-              if indexing_pipeline:
-                  print(f'Testing serialization of {pipeline_config[\"workspace\"]}/{pipeline_config[\"name\"]} indexing pipeline')
-                  yaml_str = indexing_pipeline.dumps()
-          print('All pipelines serialized successfully!')
-          "
+        run: hatch run dp:test-pipeline-serialization
 
   serialize-pipelines:
     runs-on: ubuntu-latest
