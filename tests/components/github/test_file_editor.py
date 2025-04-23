@@ -306,7 +306,7 @@ class TestGithubFileEditor:
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
     @patch("requests.get")
-    def test_undo_changes_request_exception(self, mock_get, mock_check_commit, editor):
+    def test_undo_changes_request_exception(self, mock_get: Mock, mock_check_commit: Mock, editor: GithubFileEditor) -> None:
         """Test undo with request exception"""
         mock_check_commit.return_value = True
         mock_get.side_effect = RequestException("API error")
