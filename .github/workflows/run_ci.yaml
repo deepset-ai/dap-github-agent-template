@@ -83,3 +83,18 @@ jobs:
         
     - name: Run ruff
       run: hatch run code-quality:lint-ci
+        
+    - name: Commit code formatting changes
+      if: github.event_name != 'pull_request'
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add .
+          git commit -m "style: auto-format code with black"
+          git push "https://${{ secrets.GITHUB_PAT }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${GITHUB_REF#refs/heads/}
+        else
+          echo "No code formatting changes detected, skipping commit"
+        fi
+      env:
+        GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
