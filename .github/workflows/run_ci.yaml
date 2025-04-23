@@ -22,14 +22,14 @@ jobs:
           echo "false" > pipeline_changes.txt
       
       - name: Upload code quality changes flag
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-quality-changes
           path: code_quality_changes.txt
           retention-days: 1
           
       - name: Upload pipeline changes flag
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pipeline-changes
           path: pipeline_changes.txt
