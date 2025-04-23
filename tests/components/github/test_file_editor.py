@@ -141,7 +141,7 @@ class TestGithubFileEditor:
         assert payload["content"] == b64encode(b"new content").decode("utf-8")
 
     @patch("requests.get")
-    def test_check_last_commit_same_user(self, mock_get, editor, mock_responses):
+    def test_check_last_commit_same_user(self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test checking if last commit was made by current user (success case)"""
         # Setup mocks to return responses in the correct order
         mock_get.side_effect = [mock_responses["commits"], mock_responses["user"]]
