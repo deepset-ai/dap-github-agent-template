@@ -470,7 +470,7 @@ class TestGithubFileEditor:
         assert result["result"] == "File deleted successfully"
         mock_delete.assert_called_once_with("owner", "repo", payload, "main")
 
-    def test_run_unknown_command(self, editor):
+    def test_run_unknown_command(self, editor: GithubFileEditor) -> None:
         """Test run method with unknown command"""
         result = editor.run("unknown", {})
         assert "Error: Unknown command" in result["result"]
