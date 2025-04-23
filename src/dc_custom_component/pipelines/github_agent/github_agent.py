@@ -110,7 +110,7 @@ def get_agent_pipeline() -> Pipeline:
         tools=[view_repo_tool, file_editor_tool, create_pr_tool],
         system_prompt=system_prompt,
         exit_conditions=["text", "create_pr"],
-        state_schema={"branch": {"type": str}, "repo": {"type": str}},
+        state_schema={"branch": {"type": str}, "repo": {"type": str}, "issue_url": {"type": str}},
     )
 
     issue_fetcher = FetchIssue(
