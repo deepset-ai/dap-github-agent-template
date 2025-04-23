@@ -7,8 +7,48 @@ on:
     branches: [ main ]
 
 jobs:
+  validate-pipelines:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install hatch
+
+      - name: Test pipeline serialization
+        id: test_serialization
+        run: |
+          # Import the pipeline module and test that dumps() works without errors
+          python -c "
+          from dc_custom_component.pipelines import dp_pipelines
+          for pipeline_config in dp_pipelines:
+              query_pipeline = pipeline_config['query']
+              if query_pipeline:
+                  print(f'Testing serialization of {pipeline_config[\"workspace\"]}/{pipeline_config[\"name\"]} query pipeline')
+                  yaml_str = query_pipeline.dumps()
+              
+              indexing_pipeline = pipeline_config.get('indexing')
+              if indexing_pipeline:
+                  print(f'Testing serialization of {pipeline_config[\"workspace\"]}/{pipeline_config[\"name\"]} indexing pipeline')
+                  yaml_str = indexing_pipeline.dumps()
+          print('All pipelines serialized successfully!')
+          "
+
   serialize-pipelines:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
