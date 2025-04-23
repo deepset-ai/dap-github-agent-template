@@ -138,9 +138,7 @@ class GithubFileEditor:
         """Check if last commit was made by the current token user."""
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
         params_dict: dict[str, int | str] = {"per_page": 1, "sha": branch}
-        response = requests.get(
-            url, headers=self.headers, params=params_dict
-        )
+        response = requests.get(url, headers=self.headers, params=params_dict)
         response.raise_for_status()
         last_commit = response.json()[0]
         commit_author = last_commit["author"]["login"]
@@ -312,5 +310,5 @@ class GithubFileEditor:
     def from_dict(cls, data: Dict[str, Any]) -> "GithubFileEditor":
         """Deserialize the component from a dictionary."""
         init_params = data["init_parameters"]
-        deserialize_secrets_inplace(init_params, keys=["github_token"]) # type: ignore
-        return default_from_dict(cls, data) # type: ignore
+        deserialize_secrets_inplace(init_params, keys=["github_token"])  # type: ignore
+        return default_from_dict(cls, data)  # type: ignore

@@ -161,19 +161,22 @@ class GitHubPRCreator:
         :return: Dictionary containing PR URL, number, and full response data
         """
 
-
         # Determine which repo to use
         repo_to_use = repo if repo is not None else self.repo
 
         # Ensure repo_to_use is a string, not None
         if repo_to_use is None:
-            raise ValueError("You need to specify a repo to create the pull request. Pass `repo` either to the constructor or to the `run`-method.")
-            
+            raise ValueError(
+                "You need to specify a repo to create the pull request. Pass `repo` either to the constructor or to the `run`-method."
+            )
+
         # At this point, repo_to_use is guaranteed to be a string
         repo_to_use = str(repo_to_use)
 
         if len(repo_to_use.split("/")) != 2:
-            raise ValueError("Invalid format for `repo`. The format has to correspond to owner/repo.")
+            raise ValueError(
+                "Invalid format for `repo`. The format has to correspond to owner/repo."
+            )
 
         attempts = 0
         last_error = None
