@@ -104,7 +104,7 @@ class GithubFileEditor:
     ) -> tuple[str, str]:
         """Get file content and SHA from GitHub."""
         url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        params = {"ref": branch}
+        params: dict[str, str] = {"ref": branch}
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
         data = response.json()
@@ -136,7 +136,7 @@ class GithubFileEditor:
     def _check_last_commit(self, owner: str, repo: str, branch: str) -> bool:
         """Check if last commit was made by the current token user."""
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
-        params_dict = {"per_page": 1, "sha": branch}
+        params_dict: dict[str, int | str] = {"per_page": 1, "sha": branch}
         response = requests.get(
             url, headers=self.headers, params=params_dict
         )
@@ -198,7 +198,7 @@ class GithubFileEditor:
             commits_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
 
             # Get the previous commit SHA
-            params_dict = {"per_page": 2, "sha": branch}
+            params_dict: dict[str, int | str] = {"per_page": 2, "sha": branch}
             commits = requests.get(
                 commits_url, headers=self.headers, params=params_dict
             ).json()
