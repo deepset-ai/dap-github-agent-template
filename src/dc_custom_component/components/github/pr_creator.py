@@ -150,6 +150,7 @@ class GitHubPRCreator:
         title: str,
         body: str = "",
         repo: Optional[str] = None,
+        issue_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Create a pull request on GitHub.
@@ -158,6 +159,7 @@ class GitHubPRCreator:
         :param title: Pull request title
         :param body: Pull request description/body
         :param repo: owner/repo for which to create the pull request
+        :param issue_url: URL to the related issue; if provided, adds a link to the issue in the PR body
         :return: Dictionary containing PR URL, number, and full response data
         """
 
@@ -177,6 +179,12 @@ class GitHubPRCreator:
             raise ValueError(
                 "Invalid format for `repo`. The format has to correspond to owner/repo."
             )
+            
+        # If issue_url is provided, add a link to the issue in the PR body
+        pr_body = body
+        if issue_url is not None:
+            issue_link = f"\n\nCloses {issue_url}"
+            pr_body = body + issue_link
 
         attempts = 0
         last_error = None
@@ -189,7 +197,7 @@ class GitHubPRCreator:
                     head_branch=head_branch,
                     base_branch=target_base,
                     title=title,
-                    body=body,
+                    body=pr_body,
                     repo=repo_to_use,
                 )
 
