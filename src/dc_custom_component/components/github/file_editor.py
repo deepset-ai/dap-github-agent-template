@@ -104,11 +104,13 @@ class GithubFileEditor:
     ) -> tuple[str, str]:
         """Get file content and SHA from GitHub."""
         url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        response = requests.get(url, headers=self.headers, params={"ref": branch})
+        params: dict[str, str] = {"ref": branch}
+        response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
         data = response.json()
         content = b64decode(data["content"]).decode("utf-8")
-        return content, data["sha"]
+        sha: str = data["sha"]
+        return content, sha
 
     def _update_file(
         self,
@@ -135,9 +137,8 @@ class GithubFileEditor:
     def _check_last_commit(self, owner: str, repo: str, branch: str) -> bool:
         """Check if last commit was made by the current token user."""
         url = f"https://api.github.com/repos/{owner}/{repo}/commits"
-        response = requests.get(
-            url, headers=self.headers, params={"per_page": 1, "sha": branch}
-        )
+        params_dict: dict[str, int | str] = {"per_page": 1, "sha": branch}
+        response = requests.get(url, headers=self.headers, params=params_dict)
         response.raise_for_status()
         last_commit = response.json()[0]
         commit_author = last_commit["author"]["login"]
@@ -149,7 +150,7 @@ class GithubFileEditor:
         user_response.raise_for_status()
         current_user = user_response.json()["login"]
 
-        return commit_author == current_user
+        return bool(commit_author == current_user)
 
     def _edit_file(
         self, owner: str, repo: str, payload: Dict[str, str], branch: str
@@ -196,14 +197,15 @@ class GithubFileEditor:
             commits_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
 
             # Get the previous commit SHA
+            params_dict: dict[str, int | str] = {"per_page": 2, "sha": branch}
             commits = requests.get(
-                commits_url, headers=self.headers, params={"per_page": 2, "sha": branch}
+                commits_url, headers=self.headers, params=params_dict
             ).json()
-            previous_sha = commits[1]["sha"]
+            previous_sha: str = commits[1]["sha"]
 
             # Update branch reference to previous commit
-            payload = {"sha": previous_sha, "force": True}
-            response = requests.patch(url, headers=self.headers, json=payload)
+            update_payload: dict[str, str | bool] = {"sha": previous_sha, "force": True}
+            response = requests.patch(url, headers=self.headers, json=update_payload)
             response.raise_for_status()
 
             return "Successfully undid last change"
@@ -273,12 +275,12 @@ class GithubFileEditor:
                 return {
                     "result": "Error: No repository specified. Either provide it in initialization or in run() method"
                 }
-            repo = self.default_repo
+            repo = self.default_repo  # At this point repo is guaranteed to be a string
 
         working_branch = branch if branch is not None else self.default_branch
         owner, repo_name = repo.split("/")
 
-        command_handlers = {
+        command_handlers: Dict[Command, Any] = {
             Command.EDIT: self._edit_file,
             Command.UNDO: self._undo_changes,
             Command.CREATE: self._create_file,
@@ -288,12 +290,15 @@ class GithubFileEditor:
         if command not in command_handlers:
             return {"result": f"Error: Unknown command '{command}'"}
 
-        result = command_handlers[command](owner, repo_name, payload, working_branch)
+        # Convert string command to Command enum if needed
+        cmd = Command(command) if isinstance(command, str) else command
+        handler = command_handlers[cmd]
+        result = handler(owner, repo_name, payload, working_branch)
         return {"result": result}
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize the component to a dictionary."""
-        return default_to_dict(
+        return default_to_dict(  # type: ignore
             self,
             github_token=self.github_token.to_dict() if self.github_token else None,
             repo=self.default_repo,
@@ -305,5 +310,5 @@ class GithubFileEditor:
     def from_dict(cls, data: Dict[str, Any]) -> "GithubFileEditor":
         """Deserialize the component from a dictionary."""
         init_params = data["init_parameters"]
-        deserialize_secrets_inplace(init_params, keys=["github_token"])
-        return default_from_dict(cls, data)
+        deserialize_secrets_inplace(init_params, keys=["github_token"])  # type: ignore
+        return default_from_dict(cls, data)  # type: ignore

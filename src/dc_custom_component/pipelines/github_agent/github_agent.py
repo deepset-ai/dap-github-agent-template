@@ -113,7 +113,9 @@ def get_agent_pipeline() -> Pipeline:
         state_schema={"branch": {"type": str}, "repo": {"type": str}},
     )
 
-    issue_fetcher = FetchIssue(assistant_pattern="@agent-message", strip_role_prefix=True)
+    issue_fetcher = FetchIssue(
+        assistant_pattern="@agent-message", strip_role_prefix=True
+    )
 
     adapter = OutputAdapter(
         template="{{['successfully finished in ' ~ messages|length ~ ' steps']}}",
