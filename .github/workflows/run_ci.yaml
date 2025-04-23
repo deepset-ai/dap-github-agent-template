@@ -79,10 +79,10 @@ jobs:
       run: hatch run code-quality:mypy src tests
         
     - name: Run black
-      run: hatch run code-quality:format
+      run: hatch run code-quality:format-fix
         
     - name: Run ruff
-      run: hatch run code-quality:lint-ci
+      run: hatch run code-quality:lint-fix
         
     - name: Commit code formatting changes
       if: github.event_name != 'pull_request'
