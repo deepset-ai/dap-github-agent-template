@@ -87,6 +87,8 @@ jobs:
         
   code-quality:
     runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check_formatting.outputs.has_changes }}
     
     steps:
     - uses: actions/checkout@v4
