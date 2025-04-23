@@ -434,7 +434,7 @@ class TestGithubFileEditor:
         mock_edit.assert_called_once_with("owner", "repo", payload, "main")
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._undo_changes")
-    def test_run_undo_command(self, mock_undo, editor):
+    def test_run_undo_command(self, mock_undo: Mock, editor: GithubFileEditor) -> None:
         """Test run method with undo command"""
         mock_undo.return_value = "Successfully undid last change"
 
