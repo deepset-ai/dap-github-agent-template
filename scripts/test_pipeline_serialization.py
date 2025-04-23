@@ -35,7 +35,7 @@ def main():
         if indexing_pipeline:
             try:
                 logger.info(f"Testing serialization of {workspace}/{name} indexing pipeline")
-                yaml_str = indexing_pipeline.dumps()
+                indexing_pipeline.dumps()  # Just test if it works, don't need the result
                 logger.info(f"Successfully serialized {workspace}/{name} indexing pipeline")
             except Exception as e:
                 logger.error(f"Error serializing {workspace}/{name} indexing pipeline: {str(e)}")
