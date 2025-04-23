@@ -1,4 +1,3 @@
-import json
 from base64 import b64encode
 from unittest.mock import Mock, patch
 
@@ -16,7 +15,9 @@ class TestGithubFileEditor:
         # Mock file content response
         file_content_response = Mock()
         file_content_response.json.return_value = {
-            "content": b64encode(b"def old_function():\n    return 'old'").decode("utf-8"),
+            "content": b64encode(b"def old_function():\n    return 'old'").decode(
+                "utf-8"
+            ),
             "sha": "abc123",
         }
         file_content_response.raise_for_status = Mock()
@@ -97,11 +98,15 @@ class TestGithubFileEditor:
             GithubFileEditor(github_token="not_a_secret")
 
     @patch("requests.get")
-    def test_get_file_content(self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_get_file_content(
+        self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict
+    ) -> None:
         """Test retrieving file content from GitHub"""
         mock_get.return_value = mock_responses["file_content"]
 
-        content, sha = editor._get_file_content("owner", "repo", "path/to/file.py", "main")
+        content, sha = editor._get_file_content(
+            "owner", "repo", "path/to/file.py", "main"
+        )
 
         assert content == "def old_function():\n    return 'old'"
         assert sha == "abc123"
@@ -112,7 +117,9 @@ class TestGithubFileEditor:
         )
 
     @patch("requests.put")
-    def test_update_file(self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_update_file(
+        self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict
+    ) -> None:
         """Test updating file content on GitHub"""
         mock_put.return_value = mock_responses["update_file"]
 
@@ -130,7 +137,10 @@ class TestGithubFileEditor:
         mock_put.assert_called_once()
         # Check that the correct URL and headers were used
         args, kwargs = mock_put.call_args
-        assert args[0] == "https://api.github.com/repos/owner/repo/contents/path/to/file.py"
+        assert (
+            args[0]
+            == "https://api.github.com/repos/owner/repo/contents/path/to/file.py"
+        )
         assert kwargs["headers"] == editor.headers
         # Check payload
         payload = kwargs["json"]
@@ -141,7 +151,9 @@ class TestGithubFileEditor:
         assert payload["content"] == b64encode(b"new content").decode("utf-8")
 
     @patch("requests.get")
-    def test_check_last_commit_same_user(self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_check_last_commit_same_user(
+        self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict
+    ) -> None:
         """Test checking if last commit was made by current user (success case)"""
         # Setup mocks to return responses in the correct order
         mock_get.side_effect = [mock_responses["commits"], mock_responses["user"]]
@@ -159,7 +171,9 @@ class TestGithubFileEditor:
         assert args2[0] == "https://api.github.com/user"
 
     @patch("requests.get")
-    def test_check_last_commit_different_user(self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_check_last_commit_different_user(
+        self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict
+    ) -> None:
         """Test checking if last commit was made by different user"""
         # First response for commits
         commits_response = Mock()
@@ -180,12 +194,21 @@ class TestGithubFileEditor:
         assert result is False
         assert mock_get.call_count == 2
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._update_file")
-    def test_edit_file_success(self, mock_update: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._update_file"
+    )
+    def test_edit_file_success(
+        self, mock_update: Mock, mock_get_content: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test successful file editing"""
         # Setup mocks
-        mock_get_content.return_value = ("def old_function():\n    return 'old'", "abc123")
+        mock_get_content.return_value = (
+            "def old_function():\n    return 'old'",
+            "abc123",
+        )
         mock_update.return_value = True
 
         payload = {
@@ -198,7 +221,9 @@ class TestGithubFileEditor:
         result = editor._edit_file("owner", "repo", payload, "main")
 
         assert result == "Edit successful"
-        mock_get_content.assert_called_once_with("owner", "repo", "path/to/file.py", "main")
+        mock_get_content.assert_called_once_with(
+            "owner", "repo", "path/to/file.py", "main"
+        )
         mock_update.assert_called_once_with(
             "owner",
             "repo",
@@ -209,10 +234,17 @@ class TestGithubFileEditor:
             "main",
         )
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
-    def test_edit_file_original_not_found(self, mock_get_content: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
+    def test_edit_file_original_not_found(
+        self, mock_get_content: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test file editing when original content is not found"""
-        mock_get_content.return_value = ("def different_function():\n    pass", "abc123")
+        mock_get_content.return_value = (
+            "def different_function():\n    pass",
+            "abc123",
+        )
 
         payload = {
             "path": "path/to/file.py",
@@ -226,8 +258,12 @@ class TestGithubFileEditor:
         assert result == "Error: Original string not found in file"
         mock_get_content.assert_called_once()
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
-    def test_edit_file_multiple_occurrences(self, mock_get_content: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
+    def test_edit_file_multiple_occurrences(
+        self, mock_get_content: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test file editing when original content appears multiple times"""
         content = "def old_function():\n    return 'old'\n\ndef something_else():\n    pass\n\ndef old_function():\n    return 'old'"
         mock_get_content.return_value = (content, "abc123")
@@ -241,14 +277,24 @@ class TestGithubFileEditor:
 
         result = editor._edit_file("owner", "repo", payload, "main")
 
-        assert result == "Error: Original string appears multiple times. Please provide more context"
+        assert (
+            result
+            == "Error: Original string appears multiple times. Please provide more context"
+        )
         mock_get_content.assert_called_once()
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
     @patch("requests.put")
-    def test_edit_file_request_exception(self, mock_put: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
+    def test_edit_file_request_exception(
+        self, mock_put: Mock, mock_get_content: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test file editing with request exception"""
-        mock_get_content.return_value = ("def old_function():\n    return 'old'", "abc123")
+        mock_get_content.return_value = (
+            "def old_function():\n    return 'old'",
+            "abc123",
+        )
         mock_put.side_effect = RequestException("API error")
 
         payload = {
@@ -268,10 +314,19 @@ class TestGithubFileEditor:
         result = editor._edit_file("owner", "repo", payload, "main")
         assert result == "Error: API error"
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit"
+    )
     @patch("requests.get")
     @patch("requests.patch")
-    def test_undo_changes_success(self, mock_patch: Mock, mock_get: Mock, mock_check_commit: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_undo_changes_success(
+        self,
+        mock_patch: Mock,
+        mock_get: Mock,
+        mock_check_commit: Mock,
+        editor: GithubFileEditor,
+        mock_responses: dict,
+    ) -> None:
         """Test successful undoing of changes"""
         mock_check_commit.return_value = True
         mock_get.return_value = mock_responses["commits"]
@@ -292,8 +347,12 @@ class TestGithubFileEditor:
         assert kwargs["json"]["sha"] == "previous_sha"
         assert kwargs["json"]["force"] is True
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
-    def test_undo_changes_not_same_user(self, mock_check_commit: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit"
+    )
+    def test_undo_changes_not_same_user(
+        self, mock_check_commit: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test undo when last commit was not from same user"""
         mock_check_commit.return_value = False
 
@@ -304,9 +363,13 @@ class TestGithubFileEditor:
         assert result == "Error: Last commit was not made by the current user"
         mock_check_commit.assert_called_once()
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit"
+    )
     @patch("requests.get")
-    def test_undo_changes_request_exception(self, mock_get: Mock, mock_check_commit: Mock, editor: GithubFileEditor) -> None:
+    def test_undo_changes_request_exception(
+        self, mock_get: Mock, mock_check_commit: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test undo with request exception"""
         mock_check_commit.return_value = True
         mock_get.side_effect = RequestException("API error")
@@ -324,7 +387,9 @@ class TestGithubFileEditor:
         assert result == "Error: API error"
 
     @patch("requests.put")
-    def test_create_file_success(self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_create_file_success(
+        self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict
+    ) -> None:
         """Test successful file creation"""
         mock_put.return_value = mock_responses["create_file"]
 
@@ -340,16 +405,23 @@ class TestGithubFileEditor:
         mock_put.assert_called_once()
         # Verify put call args
         args, kwargs = mock_put.call_args
-        assert args[0] == "https://api.github.com/repos/owner/repo/contents/path/to/new_file.py"
+        assert (
+            args[0]
+            == "https://api.github.com/repos/owner/repo/contents/path/to/new_file.py"
+        )
         assert kwargs["headers"] == editor.headers
         assert kwargs["json"]["message"] == "Add new file"
         assert kwargs["json"]["branch"] == "main"
         # Verify content is base64 encoded
-        expected_content = b64encode(b"def new_function():\n    return 'new'").decode("utf-8")
+        expected_content = b64encode(b"def new_function():\n    return 'new'").decode(
+            "utf-8"
+        )
         assert kwargs["json"]["content"] == expected_content
 
     @patch("requests.put")
-    def test_create_file_request_exception(self, mock_put: Mock, editor: GithubFileEditor) -> None:
+    def test_create_file_request_exception(
+        self, mock_put: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test file creation with request exception"""
         mock_put.side_effect = RequestException("API error")
 
@@ -369,9 +441,17 @@ class TestGithubFileEditor:
         result = editor._create_file("owner", "repo", payload, "main")
         assert result == "Error: API error"
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
     @patch("requests.delete")
-    def test_delete_file_success(self, mock_delete: Mock, mock_get_content: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
+    def test_delete_file_success(
+        self,
+        mock_delete: Mock,
+        mock_get_content: Mock,
+        editor: GithubFileEditor,
+        mock_responses: dict,
+    ) -> None:
         """Test successful file deletion"""
         mock_get_content.return_value = ("file content", "abc123")
         mock_delete.return_value = mock_responses["delete_file"]
@@ -381,19 +461,28 @@ class TestGithubFileEditor:
         result = editor._delete_file("owner", "repo", payload, "main")
 
         assert result == "File deleted successfully"
-        mock_get_content.assert_called_once_with("owner", "repo", "path/to/file.py", "main")
+        mock_get_content.assert_called_once_with(
+            "owner", "repo", "path/to/file.py", "main"
+        )
         mock_delete.assert_called_once()
         # Verify delete call args
         args, kwargs = mock_delete.call_args
-        assert args[0] == "https://api.github.com/repos/owner/repo/contents/path/to/file.py"
+        assert (
+            args[0]
+            == "https://api.github.com/repos/owner/repo/contents/path/to/file.py"
+        )
         assert kwargs["headers"] == editor.headers
         assert kwargs["json"]["message"] == "Delete file"
         assert kwargs["json"]["sha"] == "abc123"
         assert kwargs["json"]["branch"] == "main"
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content"
+    )
     @patch("requests.delete")
-    def test_delete_file_request_exception(self, mock_delete: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
+    def test_delete_file_request_exception(
+        self, mock_delete: Mock, mock_get_content: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test file deletion with request exception"""
         mock_get_content.return_value = ("file content", "abc123")
         mock_delete.side_effect = RequestException("API error")
@@ -410,7 +499,9 @@ class TestGithubFileEditor:
         result = editor._delete_file("owner", "repo", payload, "main")
         assert result == "Error: API error"
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._edit_file")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._edit_file"
+    )
     def test_run_edit_command(self, mock_edit: Mock, editor: GithubFileEditor) -> None:
         """Test run method with edit command"""
         mock_edit.return_value = "Edit successful"
@@ -433,7 +524,9 @@ class TestGithubFileEditor:
         assert result["result"] == "Edit successful"
         mock_edit.assert_called_once_with("owner", "repo", payload, "main")
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._undo_changes")
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._undo_changes"
+    )
     def test_run_undo_command(self, mock_undo: Mock, editor: GithubFileEditor) -> None:
         """Test run method with undo command"""
         mock_undo.return_value = "Successfully undid last change"
@@ -444,8 +537,12 @@ class TestGithubFileEditor:
         assert result["result"] == "Successfully undid last change"
         mock_undo.assert_called_once_with("owner", "repo", payload, "main")
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._create_file")
-    def test_run_create_command(self, mock_create: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._create_file"
+    )
+    def test_run_create_command(
+        self, mock_create: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test run method with create command"""
         mock_create.return_value = "File created successfully"
 
@@ -459,8 +556,12 @@ class TestGithubFileEditor:
         assert result["result"] == "File created successfully"
         mock_create.assert_called_once_with("owner", "repo", payload, "main")
 
-    @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._delete_file")
-    def test_run_delete_command(self, mock_delete: Mock, editor: GithubFileEditor) -> None:
+    @patch(
+        "dc_custom_component.components.github.file_editor.GithubFileEditor._delete_file"
+    )
+    def test_run_delete_command(
+        self, mock_delete: Mock, editor: GithubFileEditor
+    ) -> None:
         """Test run method with delete command"""
         mock_delete.return_value = "File deleted successfully"
 
@@ -483,7 +584,9 @@ class TestGithubFileEditor:
 
     def test_run_with_custom_repo_branch(self, editor: GithubFileEditor) -> None:
         """Test run method with custom repo and branch"""
-        with patch.object(editor, "_edit_file", return_value="Edit successful") as mock_edit:
+        with patch.object(
+            editor, "_edit_file", return_value="Edit successful"
+        ) as mock_edit:
             payload = {
                 "path": "path/to/file.py",
                 "original": "old",
@@ -499,7 +602,9 @@ class TestGithubFileEditor:
     def test_to_dict(self, editor: GithubFileEditor) -> None:
         """Test serialization to dictionary"""
         # Mock the to_dict method on the Secret object to prevent serialization error
-        with patch.object(Secret, 'to_dict', return_value={'type': 'env', 'value': 'GITHUB_TOKEN'}):
+        with patch.object(
+            Secret, "to_dict", return_value={"type": "env", "value": "GITHUB_TOKEN"}
+        ):
             data = editor.to_dict()
             assert "init_parameters" in data
             assert data["init_parameters"]["repo"] == "owner/repo"
@@ -515,9 +620,9 @@ class TestGithubFileEditor:
                 "repo": "owner/repo",
                 "branch": "main",
                 "raise_on_failure": True,
-            }
+            },
         }
-            
+
         editor = GithubFileEditor.from_dict(data)
         assert editor.default_repo == "owner/repo"
         assert editor.default_branch == "main"
