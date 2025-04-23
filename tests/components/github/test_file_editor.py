@@ -371,7 +371,7 @@ class TestGithubFileEditor:
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
     @patch("requests.delete")
-    def test_delete_file_success(self, mock_delete, mock_get_content, editor, mock_responses):
+    def test_delete_file_success(self, mock_delete: Mock, mock_get_content: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test successful file deletion"""
         mock_get_content.return_value = ("file content", "abc123")
         mock_delete.return_value = mock_responses["delete_file"]
