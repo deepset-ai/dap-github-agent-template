@@ -179,7 +179,7 @@ class GitHubPRCreator:
             raise ValueError(
                 "Invalid format for `repo`. The format has to correspond to owner/repo."
             )
-            
+
         # If issue_url is provided, add a link to the issue in the PR body
         pr_body = body
         if issue_url is not None:
