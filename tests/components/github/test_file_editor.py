@@ -460,7 +460,7 @@ class TestGithubFileEditor:
         mock_create.assert_called_once_with("owner", "repo", payload, "main")
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._delete_file")
-    def test_run_delete_command(self, mock_delete, editor):
+    def test_run_delete_command(self, mock_delete: Mock, editor: GithubFileEditor) -> None:
         """Test run method with delete command"""
         mock_delete.return_value = "File deleted successfully"
 
