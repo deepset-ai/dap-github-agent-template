@@ -75,6 +75,7 @@ build-and-push-cc = [
 ]
 serialize-pipelines = "python scripts/serialize_pipelines.py"
 push-pipelines = "python scripts/push_pipelines.py"
+test-pipeline-serialization = "python scripts/test_pipeline_serialization.py"
 
 
 
