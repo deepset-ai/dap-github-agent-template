@@ -197,7 +197,7 @@ class GitHubPRCreator:
                     head_branch=head_branch,
                     base_branch=target_base,
                     title=title,
-                    body=body,
+                    body=pr_body,
                     repo=repo_to_use,
                 )
 
