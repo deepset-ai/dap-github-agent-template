@@ -11,6 +11,30 @@ permissions:
   actions: read
 
 jobs:
+  # First upload artifacts containing changes status
+  init-artifacts:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Create empty artifacts
+        run: |
+          echo "false" > code_quality_changes.txt
+          echo "false" > pipeline_changes.txt
+      
+      - name: Upload code quality changes flag
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-quality-changes
+          path: code_quality_changes.txt
+          retention-days: 1
+          
+      - name: Upload pipeline changes flag
+        uses: actions/upload-artifact@v3
+        with:
+          name: pipeline-changes
+          path: pipeline_changes.txt
+          retention-days: 1
+          
   validate-pipelines:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
