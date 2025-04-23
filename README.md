@@ -171,8 +171,9 @@ Each pipeline configuration added to `dp_pipelines` will be uploaded to the deep
 3. Go to the GitHub UI and create a Pull Request.
 
 Once you created your pull request, the CI-workflow will run.
-The CI runs code-quality checks and tests. It also takes care of serializing your exported pipelines to yaml.
-You will see a commit from the GitHub-Actions Bot that places serialized pipelines into the `dist/pipelines` directory.
+The CI runs code-quality checks and tests. For pull requests, it validates that your pipeline definitions can be serialized, but it doesn't actually write the serialized files.
+When you merge your pull request to the main branch, the CI will then serialize your pipelines and save them to the `dist/pipelines` directory.
+You will see a commit from the GitHub-Actions Bot that places these serialized pipelines into the `dist/pipelines` directory.
 If no pipelines were added or existing pipelines haven't changed, the Bot will skip serialization.
 Once all checks pass, merge your pull request.
 
