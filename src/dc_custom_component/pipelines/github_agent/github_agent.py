@@ -83,7 +83,7 @@ def get_agent_pipeline() -> Pipeline:
         component=GitHubPRCreator(),
         name="create_pr",
         description="Creates a pull request with your changes after you've completed your implementation.",
-        inputs_from_state={"branch": "head_branch", "repo": "repo"},
+        inputs_from_state={"branch": "head_branch", "repo": "repo", "issue_url": "issue_url"},
         parameters={
             "type": "object",
             "properties": {
