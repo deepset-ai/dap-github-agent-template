@@ -34,11 +34,12 @@ jobs:
   serialize-pipelines:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      has_changes: ${{ steps.check_changes.outputs.has_changes }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.head_ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -54,17 +55,15 @@ jobs:
       - name: Generate YAML files
         id: generate
         run: hatch run dp:serialize-pipelines
-
-      - name: Commit changes if any
+        
+      - name: Check for changes
+        id: check_changes
         run: |
           if [ -n "$(git status --porcelain dist/pipelines/)" ]; then
-            git config --global user.name 'GitHub Action'
-            git config --global user.email 'action@github.com'
-            git add dist/pipelines/
-            git commit -m "Auto-serialize pipelines"
-            git push
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           else
-            echo "No changes detected in pipelines, skipping commit"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in pipelines, skipping"
           fi
   test:
     runs-on: ubuntu-latest
