@@ -154,7 +154,17 @@ jobs:
       run: |
         if [ -n "$(git status --porcelain)" ]; then
           echo "has_changes=true" >> $GITHUB_OUTPUT
+          echo "true" > code_quality_changes.txt
         else
           echo "has_changes=false" >> $GITHUB_OUTPUT
           echo "No code formatting changes detected, skipping"
+          echo "false" > code_quality_changes.txt
         fi
+
+    - name: Upload code quality changes flag
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-quality-changes
+        path: code_quality_changes.txt
+        retention-days: 1
