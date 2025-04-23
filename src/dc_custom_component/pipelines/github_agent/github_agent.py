@@ -83,7 +83,11 @@ def get_agent_pipeline() -> Pipeline:
         component=GitHubPRCreator(),
         name="create_pr",
         description="Creates a pull request with your changes after you've completed your implementation.",
-        inputs_from_state={"branch": "head_branch", "repo": "repo", "issue_url": "issue_url"},
+        inputs_from_state={
+            "branch": "head_branch",
+            "repo": "repo",
+            "issue_url": "issue_url",
+        },
         parameters={
             "type": "object",
             "properties": {
@@ -110,7 +114,11 @@ def get_agent_pipeline() -> Pipeline:
         tools=[view_repo_tool, file_editor_tool, create_pr_tool],
         system_prompt=system_prompt,
         exit_conditions=["text", "create_pr"],
-        state_schema={"branch": {"type": str}, "repo": {"type": str}, "issue_url": {"type": str}},
+        state_schema={
+            "branch": {"type": str},
+            "repo": {"type": str},
+            "issue_url": {"type": str},
+        },
     )
 
     issue_fetcher = FetchIssue(
@@ -127,11 +135,7 @@ def get_agent_pipeline() -> Pipeline:
     pp = Pipeline(
         metadata={
             "inputs": {
-                "query": [
-                    "builder.query",
-                    "issue_fetcher.url",
-                    "agent.issue_url"
-                ],
+                "query": ["builder.query", "issue_fetcher.url", "agent.issue_url"],
             },
             "outputs": {"answers": "builder.answers"},
         }
