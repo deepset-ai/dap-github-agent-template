@@ -144,7 +144,6 @@ def get_agent_pipeline() -> Pipeline:
 
     pp.connect("issue_fetcher.messages", "agent.messages")
     pp.connect("issue_fetcher.branch", "agent.branch")
-    pp.connect("issue_fetcher.url", "agent.issue_url")
     pp.connect("agent.messages", "adapter.messages")
     pp.connect("adapter.output", "builder.replies")
 
