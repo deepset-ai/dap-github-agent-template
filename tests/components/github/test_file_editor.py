@@ -182,7 +182,7 @@ class TestGithubFileEditor:
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._update_file")
-    def test_edit_file_success(self, mock_update, mock_get_content, editor):
+    def test_edit_file_success(self, mock_update: Mock, mock_get_content: Mock, editor: GithubFileEditor) -> None:
         """Test successful file editing"""
         # Setup mocks
         mock_get_content.return_value = ("def old_function():\n    return 'old'", "abc123")
