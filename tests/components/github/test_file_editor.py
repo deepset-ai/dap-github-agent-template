@@ -70,7 +70,7 @@ class TestGithubFileEditor:
             branch="main",
         )
 
-    def test_init_with_defaults(self):
+    def test_init_with_defaults(self) -> None:
         """Test initialization with default values"""
         editor = GithubFileEditor(github_token=Secret.from_token("dummy_token"))
         assert editor.default_repo is None
