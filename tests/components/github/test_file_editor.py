@@ -293,7 +293,7 @@ class TestGithubFileEditor:
         assert kwargs["json"]["force"] is True
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
-    def test_undo_changes_not_same_user(self, mock_check_commit, editor):
+    def test_undo_changes_not_same_user(self, mock_check_commit: Mock, editor: GithubFileEditor) -> None:
         """Test undo when last commit was not from same user"""
         mock_check_commit.return_value = False
 
