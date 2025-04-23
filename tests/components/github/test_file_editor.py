@@ -210,7 +210,7 @@ class TestGithubFileEditor:
         )
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
-    def test_edit_file_original_not_found(self, mock_get_content, editor):
+    def test_edit_file_original_not_found(self, mock_get_content: Mock, editor: GithubFileEditor) -> None:
         """Test file editing when original content is not found"""
         mock_get_content.return_value = ("def different_function():\n    pass", "abc123")
 
