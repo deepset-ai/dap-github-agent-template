@@ -3,6 +3,7 @@ from haystack import Pipeline
 from haystack.components.agents import Agent
 from haystack.components.builders import AnswerBuilder
 from haystack.components.converters import OutputAdapter
+from haystack.dataclasses import ChatMessage
 from haystack.tools import ComponentTool
 from haystack.utils import Secret
 
@@ -14,8 +15,6 @@ from dc_custom_component.components.github.read_contents import GithubContentVie
 from dc_custom_component.components.github.file_editor import GithubFileEditor
 from dc_custom_component.components.github.pr_creator import GitHubPRCreator
 from dc_custom_component.components.ci.ci_output_parser import CIOutputParser
-from dc_custom_component.components.ci.branch_creator import CIBranchCreator
-from dc_custom_component.components.ci.documents_to_messages import CIDocumentToChatMessageConverter
 
 from .system_prompt import system_prompt
 
