@@ -475,7 +475,7 @@ class TestGithubFileEditor:
         result = editor.run("unknown", {})
         assert "Error: Unknown command" in result["result"]
 
-    def test_run_no_repo_specified(self, editor):
+    def test_run_no_repo_specified(self, editor: GithubFileEditor) -> None:
         """Test run method with no repository specified"""
         editor.default_repo = None
         result = editor.run(Command.EDIT, {})
