@@ -112,7 +112,7 @@ class TestGithubFileEditor:
         )
 
     @patch("requests.put")
-    def test_update_file(self, mock_put, editor, mock_responses):
+    def test_update_file(self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test updating file content on GitHub"""
         mock_put.return_value = mock_responses["update_file"]
 
