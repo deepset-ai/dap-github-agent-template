@@ -349,7 +349,7 @@ class TestGithubFileEditor:
         assert kwargs["json"]["content"] == expected_content
 
     @patch("requests.put")
-    def test_create_file_request_exception(self, mock_put, editor):
+    def test_create_file_request_exception(self, mock_put: Mock, editor: GithubFileEditor) -> None:
         """Test file creation with request exception"""
         mock_put.side_effect = RequestException("API error")
 
