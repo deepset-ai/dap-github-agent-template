@@ -109,7 +109,8 @@ class GithubFileEditor:
         response.raise_for_status()
         data = response.json()
         content = b64decode(data["content"]).decode("utf-8")
-        return content, data["sha"]
+        sha: str = data["sha"]
+        return content, sha
 
     def _update_file(
         self,
@@ -151,7 +152,7 @@ class GithubFileEditor:
         user_response.raise_for_status()
         current_user = user_response.json()["login"]
 
-        return commit_author == current_user
+        return bool(commit_author == current_user)
 
     def _edit_file(
         self, owner: str, repo: str, payload: Dict[str, str], branch: str
@@ -202,7 +203,7 @@ class GithubFileEditor:
             commits = requests.get(
                 commits_url, headers=self.headers, params=params_dict
             ).json()
-            previous_sha = commits[1]["sha"]
+            previous_sha: str = commits[1]["sha"]
 
             # Update branch reference to previous commit
             payload = {"sha": previous_sha, "force": True}
