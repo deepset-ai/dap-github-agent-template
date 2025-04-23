@@ -79,7 +79,22 @@ jobs:
       run: hatch run code-quality:mypy src tests
         
     - name: Run black
-      run: hatch run code-quality:format
+      run: hatch run code-quality:format-fix
         
     - name: Run ruff
-      run: hatch run code-quality:lint-ci
+      run: hatch run code-quality:lint-fix
+        
+    - name: Commit code formatting changes
+      if: github.event_name != 'pull_request'
+      run: |
+        if [ -n "$(git status --porcelain)" ]; then
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add .
+          git commit -m "style: auto-format and lint code with black and ruff"
+          git push "https://${{ secrets.PAT_GITHUB }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${GITHUB_REF#refs/heads/}
+        else
+          echo "No code formatting changes detected, skipping commit"
+        fi
+      env:
+        PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
