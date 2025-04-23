@@ -8,7 +8,9 @@ on:
 
 jobs:
   process-ai-issue:
-    if: ${{ github.event.label.name == 'deepset-ai' }}
+    if: |
+      (github.event_name == 'issues' && github.event.label.name == 'deepset-ai') ||
+      (github.event_name == 'issue_comment' && contains(github.event.issue.labels.*.name, 'deepset-ai'))
     runs-on: ubuntu-latest
     steps:
       - name: Send Issue to deepset AI Platform
