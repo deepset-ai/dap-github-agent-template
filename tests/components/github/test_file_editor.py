@@ -11,7 +11,7 @@ from haystack.utils import Secret
 
 class TestGithubFileEditor:
     @pytest.fixture
-    def mock_responses(self):
+    def mock_responses(self) -> dict:
         """Setup mock responses for API calls"""
         # Mock file content response
         file_content_response = Mock()
