@@ -1,0 +1,89 @@
+name: AI CI Processor
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  process-ci-failures:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download CI logs
+        uses: actions/github-script@v6
+        id: download-logs
+        with:
+          script: |
+            const workflowRunId = ${{ github.event.workflow_run.id }};
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: workflowRunId
+            });
+            
+            let allLogs = '';
+            
+            for (const job of jobs.data.jobs) {
+              const logs = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                job_id: job.id
+              });
+              
+              allLogs += `\n\n## Job: ${job.name} (${job.conclusion})\n\n`;
+              allLogs += logs.data;
+            }
+            
+            return allLogs;
+      
+      - name: Get issue information
+        uses: actions/github-script@v6
+        id: get-issue-info
+        with:
+          script: |
+            // Get the workflow that triggered this run
+            const workflow = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+            
+            // The head_branch of the workflow run should be the branch created by the GitHub agent
+            const branch = workflow.data.head_branch;
+            
+            // Extract the issue number from branch name (assuming format like 'fix-issue-123')
+            const match = branch.match(/fix-issue-(\d+)/);
+            let issueUrl = null;
+            
+            if (match) {
+              const issueNumber = match[1];
+              issueUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/issues/${issueNumber}`;
+              console.log(`Found issue URL: ${issueUrl} from branch ${branch}`);
+            } else {
+              console.log(`Could not extract issue number from branch: ${branch}`);
+              issueUrl = "";
+            }
+            
+            return {
+              branch: branch,
+              issueUrl: issueUrl
+            };
+      
+      - name: Send CI Logs to deepset AI Platform
+        env:
+          DEEPSET_API_TOKEN: ${{ secrets.DEEPSET_API_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          CI_LOGS: ${{ steps.download-logs.outputs.result }}
+          ISSUE_URL: ${{ fromJson(steps.get-issue-info.outputs.result).issueUrl }}
+        run: |
+          # Prepare logs for API call (escape newlines and quotes)
+          ESCAPED_LOGS=$(echo '${{ steps.download-logs.outputs.result }}' | jq -Rs .)
+          
+          # Make API call to deepset Cloud
+          curl --request POST \
+               --url https://api.cloud.deepset.ai/api/v1/workspaces/default/pipelines/ci-agent-claude/search \
+               --header 'accept: application/json' \
+               --header 'authorization: Bearer ${{ env.DEEPSET_API_TOKEN }}' \
+               --header 'content-type: application/json' \
+               --data "{\"debug\": false, \"view_prompts\": false, \"queries\": [${ESCAPED_LOGS}], \"params\": {\"repo\": \"${{ env.REPOSITORY }}\", \"issue_url\": \"${{ env.ISSUE_URL }}\"}}"
