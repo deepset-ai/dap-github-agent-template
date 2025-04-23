@@ -271,7 +271,7 @@ class TestGithubFileEditor:
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._check_last_commit")
     @patch("requests.get")
     @patch("requests.patch")
-    def test_undo_changes_success(self, mock_patch, mock_get, mock_check_commit, editor, mock_responses):
+    def test_undo_changes_success(self, mock_patch: Mock, mock_get: Mock, mock_check_commit: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test successful undoing of changes"""
         mock_check_commit.return_value = True
         mock_get.return_value = mock_responses["commits"]
