@@ -78,7 +78,7 @@ class TestGithubFileEditor:
         assert editor.raise_on_failure is True
         assert editor.headers["Authorization"] == "Bearer dummy_token"
 
-    def test_init_with_custom_values(self):
+    def test_init_with_custom_values(self) -> None:
         """Test initialization with custom values"""
         editor = GithubFileEditor(
             github_token=Secret.from_token("custom_token"),
