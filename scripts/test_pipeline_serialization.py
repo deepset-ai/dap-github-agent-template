@@ -24,7 +24,7 @@ def main():
         if query_pipeline:
             try:
                 logger.info(f"Testing serialization of {workspace}/{name} query pipeline")
-                yaml_str = query_pipeline.dumps()
+                query_pipeline.dumps()  # Just test if it works, don't need the result
                 logger.info(f"Successfully serialized {workspace}/{name} query pipeline")
             except Exception as e:
                 logger.error(f"Error serializing {workspace}/{name} query pipeline: {str(e)}")
