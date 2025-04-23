@@ -6,6 +6,9 @@ on:
     types:
       - completed
     branches: [main]
+    
+permissions:
+  contents: write
 
 jobs:
   commit-changes:
