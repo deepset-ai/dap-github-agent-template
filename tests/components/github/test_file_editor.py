@@ -97,7 +97,7 @@ class TestGithubFileEditor:
             GithubFileEditor(github_token="not_a_secret")
 
     @patch("requests.get")
-    def test_get_file_content(self, mock_get, editor, mock_responses):
+    def test_get_file_content(self, mock_get: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test retrieving file content from GitHub"""
         mock_get.return_value = mock_responses["file_content"]
 
