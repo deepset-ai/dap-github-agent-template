@@ -445,7 +445,7 @@ class TestGithubFileEditor:
         mock_undo.assert_called_once_with("owner", "repo", payload, "main")
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._create_file")
-    def test_run_create_command(self, mock_create, editor):
+    def test_run_create_command(self, mock_create: Mock, editor: GithubFileEditor) -> None:
         """Test run method with create command"""
         mock_create.return_value = "File created successfully"
 
