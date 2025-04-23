@@ -30,6 +30,8 @@ components:
       state_schema:
         branch:
           type: str
+        issue_url:
+          type: str
         repo:
           type: str
       streaming_callback: null
@@ -250,6 +252,7 @@ components:
             your implementation.
           inputs_from_state:
             branch: head_branch
+            issue_url: issue_url
             repo: repo
           name: create_pr
           outputs_to_state: null
@@ -299,12 +302,14 @@ inputs:
   query:
   - builder.query
   - issue_fetcher.url
+  - agent.issue_url
 max_runs_per_component: 100
 metadata:
   inputs:
     query:
     - builder.query
     - issue_fetcher.url
+    - agent.issue_url
   outputs:
     answers: builder.answers
 outputs:
