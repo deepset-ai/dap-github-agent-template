@@ -496,7 +496,7 @@ class TestGithubFileEditor:
             assert result["result"] == "Edit successful"
             mock_edit.assert_called_once_with("custom", "repo", payload, "feature")
 
-    def test_to_dict(self, editor):
+    def test_to_dict(self, editor: GithubFileEditor) -> None:
         """Test serialization to dictionary"""
         # Mock the to_dict method on the Secret object to prevent serialization error
         with patch.object(Secret, 'to_dict', return_value={'type': 'env', 'value': 'GITHUB_TOKEN'}):
