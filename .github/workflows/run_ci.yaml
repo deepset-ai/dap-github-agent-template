@@ -89,10 +89,19 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain dist/pipelines/)" ]; then
             echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "true" > pipeline_changes.txt
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "No changes detected in pipelines, skipping"
+            echo "false" > pipeline_changes.txt
           fi
+          
+      - name: Upload pipeline changes flag
+        uses: actions/upload-artifact@v3
+        with:
+          name: pipeline-changes
+          path: pipeline_changes.txt
+          retention-days: 1
   test:
     runs-on: ubuntu-latest
     needs: [code-quality]
