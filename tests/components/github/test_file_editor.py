@@ -324,7 +324,7 @@ class TestGithubFileEditor:
         assert result == "Error: API error"
 
     @patch("requests.put")
-    def test_create_file_success(self, mock_put, editor, mock_responses):
+    def test_create_file_success(self, mock_put: Mock, editor: GithubFileEditor, mock_responses: dict) -> None:
         """Test successful file creation"""
         mock_put.return_value = mock_responses["create_file"]
 
