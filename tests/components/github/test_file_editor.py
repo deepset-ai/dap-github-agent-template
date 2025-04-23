@@ -227,7 +227,7 @@ class TestGithubFileEditor:
         mock_get_content.assert_called_once()
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._get_file_content")
-    def test_edit_file_multiple_occurrences(self, mock_get_content, editor):
+    def test_edit_file_multiple_occurrences(self, mock_get_content: Mock, editor: GithubFileEditor) -> None:
         """Test file editing when original content appears multiple times"""
         content = "def old_function():\n    return 'old'\n\ndef something_else():\n    pass\n\ndef old_function():\n    return 'old'"
         mock_get_content.return_value = (content, "abc123")
