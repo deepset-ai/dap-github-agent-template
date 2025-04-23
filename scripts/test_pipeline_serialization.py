@@ -24,7 +24,8 @@ def main():
         if query_pipeline:
             try:
                 logger.info(f"Testing serialization of {workspace}/{name} query pipeline")
-                query_pipeline.dumps()  # Just test if it works, don't need the result
+                # Test if serialization works, store result for validation but don't use it
+                _ = query_pipeline.dumps()
                 logger.info(f"Successfully serialized {workspace}/{name} query pipeline")
             except Exception as e:
                 logger.error(f"Error serializing {workspace}/{name} query pipeline: {str(e)}")
@@ -35,7 +36,8 @@ def main():
         if indexing_pipeline:
             try:
                 logger.info(f"Testing serialization of {workspace}/{name} indexing pipeline")
-                indexing_pipeline.dumps()  # Just test if it works, don't need the result
+                # Test if serialization works, store result for validation but don't use it
+                _ = indexing_pipeline.dumps()
                 logger.info(f"Successfully serialized {workspace}/{name} indexing pipeline")
             except Exception as e:
                 logger.error(f"Error serializing {workspace}/{name} indexing pipeline: {str(e)}")
