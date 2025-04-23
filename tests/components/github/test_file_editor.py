@@ -411,7 +411,7 @@ class TestGithubFileEditor:
         assert result == "Error: API error"
 
     @patch("dc_custom_component.components.github.file_editor.GithubFileEditor._edit_file")
-    def test_run_edit_command(self, mock_edit, editor):
+    def test_run_edit_command(self, mock_edit: Mock, editor: GithubFileEditor) -> None:
         """Test run method with edit command"""
         mock_edit.return_value = "Edit successful"
 
