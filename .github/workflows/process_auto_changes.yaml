@@ -1,5 +1,4 @@
 name: Process Auto Changes
-
 on:
   workflow_run:
     workflows: ["CI"]
@@ -9,7 +8,6 @@ on:
     
 permissions:
   contents: write
-
 jobs:
   process-changes:
     runs-on: ubuntu-latest
@@ -21,43 +19,45 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.PAT_GITHUB }}
       
-      # Download all artifacts at once to avoid duplicate artifact handling
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-          name-prefix: ""
-          path: artifacts
-          
       - name: Setup git
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'
       
-      # Stage 1: Handle code quality changes if needed
-      - name: Apply code quality changes
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          
+      - name: Install Hatch
+        run: pip install hatch
+        
+      # Run code quality tools
+      - name: Run code quality fixes
         run: |
-          if [ -f "artifacts/code-quality-changes/code_quality_changes.txt" ] && [ "$(cat artifacts/code-quality-changes/code_quality_changes.txt)" == "true" ]; then
-            echo "Applying code quality changes"
+          hatch run code-quality:format-fix
+          hatch run code-quality:lint-fix
+          if [ -n "$(git status --porcelain)" ]; then
             git add .
             git commit -m "style: auto-format and lint code with black and ruff"
+            echo "Code quality changes committed"
           else
-            echo "No code quality changes to apply"
+            echo "No code quality changes detected"
           fi
-
-      # Stage 2: Handle pipeline serialization changes if needed
-      - name: Apply pipeline serialization changes
+          
+      # Run pipeline serialization
+      - name: Generate pipeline serialization
         run: |
-          if [ -f "artifacts/pipeline-changes/pipeline_changes.txt" ] && [ "$(cat artifacts/pipeline-changes/pipeline_changes.txt)" == "true" ]; then
-            echo "Applying pipeline serialization changes"
+          hatch run dp:serialize-pipelines
+          if [ -n "$(git status --porcelain dist/pipelines/)" ]; then
             git add dist/pipelines/
             git commit -m "chore: auto-serialize pipelines"
+            echo "Pipeline serialization changes committed"
           else
-            echo "No pipeline serialization changes to apply"
+            echo "No pipeline serialization changes detected"
           fi
-
-      # Push all changes at once if there are any
+          
+      # Push any changes
       - name: Push changes
         run: |
           if [ -n "$(git log --oneline @{u}..HEAD)" ]; then
