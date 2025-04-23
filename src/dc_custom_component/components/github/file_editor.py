@@ -206,7 +206,7 @@ class GithubFileEditor:
             previous_sha: str = commits[1]["sha"]
 
             # Update branch reference to previous commit
-            payload = {"sha": previous_sha, "force": True}
+            payload: dict[str, str | bool] = {"sha": previous_sha, "force": True}
             response = requests.patch(url, headers=self.headers, json=payload)
             response.raise_for_status()
 
@@ -312,5 +312,5 @@ class GithubFileEditor:
     def from_dict(cls, data: Dict[str, Any]) -> "GithubFileEditor":
         """Deserialize the component from a dictionary."""
         init_params = data["init_parameters"]
-        deserialize_secrets_inplace(init_params, keys=["github_token"])
+        deserialize_secrets_inplace(init_params, keys=["github_token"]) # type: ignore
         return default_from_dict(cls, data)
