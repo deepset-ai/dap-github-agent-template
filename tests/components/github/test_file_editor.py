@@ -507,7 +507,7 @@ class TestGithubFileEditor:
             assert data["init_parameters"]["raise_on_failure"] is True
             assert "github_token" in data["init_parameters"]
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         """Test deserialization from dictionary"""
         data = {
             "type": "dc_custom_component.components.github.file_editor.GithubFileEditor",
